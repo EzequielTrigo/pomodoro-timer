@@ -1,11 +1,15 @@
 class Timer {
     constructor(goal, frase) {
+        if (goal <=0){
+            throw new Error("goal most be greater than 0");
+        }
         this.startTime = null;
         this.elapsedTime = 0;
         this.running = false;
         this.stopped = false;
         this.goal = goal;
         this.frase = frase;
+        this.pair = null;
     }
 
     startTimer() {
@@ -47,20 +51,49 @@ class Timer {
     }
 
     checkGoal() {
-        console.log(this)
         if (this.running) {
             this.elapsedTime = Date.now() - this.startTime;
             if (this.elapsedTime >= this.goal) {
                 console.log("Goal reached!");
                 this.resetTimer();
             }else{
-                console.log(this.frase);
+                console.log(this.frase+"!!!!!!!!!!!");
             }
         }
     }
+    pauseWithEventualChange(timerToChange){
+        this.timerToChange=timerToChange;
+        stoppedTimer=this;
+        this.stopTimer;
+    }
+    resumeWithEventualChange(){
+        this.resumeTimer;
+        loopTimer(this, this.timerToChange);
+    }
 }
-let pomodoroTimer = new Timer( 4000, "study") // Set goal to 25 minutes
-let restTimer = new Timer( 2000, "rest") // Set goal to 5 minutes
+const readline = require("readline/promises");
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+let stop = false;
+
+async function actionReader() {
+    const action = await rl.question("Next action: ");
+    if (action == "stop"){
+        stop=true;
+    }else if(action == "continue"){
+        stop=false;
+        stoppedTimer.resumeWithEventualChange();
+    }
+    actionReader();
+}
+
+actionReader();
+let pomodoroTimer = new Timer( 8000, "study"); // Set goal to 25 minutes
+let restTimer = new Timer( 4000, "rest"); // Set goal to 5 minutes
+let stoppedTimer;
 
 pomodoroTimer.startTimer();
 console.log(pomodoroTimer.running);
@@ -85,8 +118,12 @@ function loopTimer(timerToMonitor, timerToChange){
         console.log("isRunning");
         setTimeout(() => {
             timerToMonitor.checkGoal();
-            loopTimer(timerToMonitor, timerToChange);
-        }, 1000);
+            if(stop){
+                timerToMonitor.pauseWithEventualChange(timerToChange);
+            }else{
+                loopTimer(timerToMonitor, timerToChange);
+            }
+        }, 2000);
     }else{
         console.log("termino timer, pasa al otro");
         timerToChange.resetTimer();
