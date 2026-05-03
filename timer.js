@@ -113,18 +113,22 @@ async function actionReader() {
 }
 
 
-let pomodoroTimer = new Timer( 8000, "study"); // Set goal to 25 minutes
-let restTimer = new Timer( 4000, "rest"); // Set goal to 5 minutes
-let stoppedTimer;
-let stop = false;
-let clock = new Clock(pomodoroTimer);
-actionReader();
 
-pomodoroTimer.startTimer();
+async function initializeTimes(){
+    let pomodoroTime = await rl.question("Set pomodoro time in minutes: ");
+    let restTime = await rl.question("Set rest time in minutes: ");
+    let pomodoroTimer = new Timer( pomodoroTime * 60000, "study"); // Set goal to pomodoroTime minutes
+    let restTimer = new Timer( restTime * 60000, "rest"); // Set goal to restTime minutes
+    let stop = false;
+    actionReader();
+    pomodoroTimer.startTimer();
+    let clock = new Clock(pomodoroTimer);
+    loopTimer(pomodoroTimer, restTimer, clock, stop);
+}
 
-loopTimer(pomodoroTimer,restTimer);
+initializeTimes();
 
-function loopTimer(timerToMonitor, timerToChange){
+function loopTimer(timerToMonitor, timerToChange, clock, stop){
     if(timerToMonitor.running){
         console.log("isRunning");
         clock.displayTime();
@@ -134,13 +138,13 @@ function loopTimer(timerToMonitor, timerToChange){
                 timerToMonitor.pauseWithEventualChange(timerToChange);
                 clock.changeTimer(timerToChange);
             }else{
-                loopTimer(timerToMonitor, timerToChange);
+                loopTimer(timerToMonitor, timerToChange, clock, stop);
             }
         }, 1000);
     }else{
         console.log("termino timer, pasa al otro");
         timerToChange.resetTimer();
         timerToChange.startTimer();
-        loopTimer(timerToChange, timerToMonitor)
+        loopTimer(timerToChange, timerToMonitor, clock, stop);
     }
 }
