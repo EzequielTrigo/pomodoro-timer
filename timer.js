@@ -71,13 +71,35 @@ class Timer {
         loopTimer(this, this.timerToChange);
     }
 }
+
+class Clock {
+    constructor(timer) {
+        this.timer = timer;
+        this.minutes = 0;
+        this.seconds = 0;
+    }
+
+    displayTime() {
+        const elapsedTime = this.timer.elapsedTime;
+        this.minutes = Math.floor(elapsedTime / 60000);
+        this.seconds = Math.floor((elapsedTime % 60000) / 1000);
+        console.log("Elapsed time: " + this.minutes + " minutes and " + this.seconds + " seconds");
+    }   
+
+    changeTimer(newTimer) {
+        this.timer = newTimer;
+        this.minutes = 0;
+        this.seconds = 0;
+        console.log("Timer changed.");
+    }
+}
+
 const readline = require("readline/promises");
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
-let stop = false;
 
 async function actionReader() {
     const action = await rl.question("Next action: ");
@@ -90,40 +112,31 @@ async function actionReader() {
     actionReader();
 }
 
-actionReader();
+
 let pomodoroTimer = new Timer( 8000, "study"); // Set goal to 25 minutes
 let restTimer = new Timer( 4000, "rest"); // Set goal to 5 minutes
 let stoppedTimer;
+let stop = false;
+let clock = new Clock(pomodoroTimer);
+actionReader();
 
 pomodoroTimer.startTimer();
-console.log(pomodoroTimer.running);
+
 loopTimer(pomodoroTimer,restTimer);
-//while (true) {
-//    console.log("hola");
-//    while (pomodoroTimer.running) {
-//        setTimeout(() => console.log(pomodoroTimer.checkGoal()), 500);
-//        setTimeout(() => console.log("esperar"), 500);
-//    }
-//    if (pomodoroTimer.stopped) {
-//        restTimer.startTimer();
-//        while (restTimer.running) {
-//            restTimer.checkGoal();
-//            console.log("rest")
-//        }
-//    }
-//}
 
 function loopTimer(timerToMonitor, timerToChange){
     if(timerToMonitor.running){
         console.log("isRunning");
+        clock.displayTime();
         setTimeout(() => {
             timerToMonitor.checkGoal();
             if(stop){
                 timerToMonitor.pauseWithEventualChange(timerToChange);
+                clock.changeTimer(timerToChange);
             }else{
                 loopTimer(timerToMonitor, timerToChange);
             }
-        }, 2000);
+        }, 1000);
     }else{
         console.log("termino timer, pasa al otro");
         timerToChange.resetTimer();
